@@ -1,0 +1,25 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+
+    <!-- NuGet package metadata -->
+    <PackageId>FCGames.IntegrationEvents</PackageId>
+    <Version>1.0.0</Version>
+    <Authors>FIAP-POS-TECH-TEAM-10</Authors>
+    <Description>Integration events (message contracts) shared across FCGames microservices.</Description>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <RepositoryUrl>https://github.com/FIAP-POS-TECH-TEAM-10/fcg-integration-events</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+
+    <!-- Gera .nupkg no dotnet pack -->
+    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="..\..\README.md" Pack="true" PackagePath="\" />
+  </ItemGroup>
+
+</Project>
