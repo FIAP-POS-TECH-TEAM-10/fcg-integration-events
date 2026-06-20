@@ -4,12 +4,12 @@ namespace FCGames.IntegrationEvents;
 /// Publicado por: CatalogAPI ao criar um pedido (após commit).
 /// Consumido por: PaymentsAPI (processa o pagamento).
 /// </summary>
-public record OrderPlacedEvent(
-    Guid OrderId,
-    Guid UserId,
-    Guid GameId,
-    string GameName,
-    decimal Price,
-    DateTime PlacedAtUtc,
+public record PedidoRealizadoEvento(
+    Guid PedidoId,
+    Guid UsuarioId,
+    Guid JogoId,
+    string NomeJogo,
+    decimal Preco,
+    DateTime RealizadoEmUtc,
     Guid CorrelationId
 );

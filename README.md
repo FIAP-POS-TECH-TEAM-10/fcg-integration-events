@@ -6,9 +6,9 @@ Contratos de integração compartilhados entre os microsserviços FCGames.
 
 | Evento | Publicado por | Consumido por |
 |--------|--------------|---------------|
-| `UserCreatedEvent` | UsersAPI | CatalogAPI, NotificationsAPI |
-| `OrderPlacedEvent` | CatalogAPI | PaymentsAPI |
-| `PaymentProcessedEvent` | PaymentsAPI | CatalogAPI, NotificationsAPI |
+| `UsuarioCriadoEvento` | UsersAPI | CatalogAPI, NotificationsAPI |
+| `PedidoRealizadoEvento` | CatalogAPI | PaymentsAPI |
+| `PagamentoProcessadoEvento` | PaymentsAPI | CatalogAPI, NotificationsAPI |
 
 ## Como consumir
 
@@ -28,23 +28,47 @@ Copie o arquivo `nuget.config` deste repo. Configure a variável de ambiente `NU
 using FCGames.IntegrationEvents;
 
 // Publisher (ex: UsersAPI)
-await _publishEndpoint.Publish(new UserCreatedEvent(
-    UserId: usuario.Id,
+await _publishEndpoint.Publish(new UsuarioCriadoEvento(
+    UsuarioId: usuario.Id,
     Nome: usuario.Nome,
     Email: usuario.Email,
-    CreatedAtUtc: DateTime.UtcNow,
+    CriadoEmUtc: DateTime.UtcNow,
     CorrelationId: Guid.NewGuid()
 ));
 
 // Consumer (ex: CatalogAPI)
-public class UserCreatedConsumer : IConsumer<UserCreatedEvent>
+public class UsuarioCriadoConsumer : IConsumer<UsuarioCriadoEvento>
 {
-    public async Task Consume(ConsumeContext<UserCreatedEvent> context)
+    public async Task Consume(ConsumeContext<UsuarioCriadoEvento> context)
     {
         var evt = context.Message;
-        // criar biblioteca vazia para evt.UserId
+        // criar biblioteca vazia para evt.UsuarioId
     }
 }
+
+// Publisher (ex: CatalogAPI)
+await _publishEndpoint.Publish(new PedidoRealizadoEvento(
+    PedidoId: pedido.Id,
+    UsuarioId: pedido.UsuarioId,
+    JogoId: pedido.JogoId,
+    NomeJogo: jogo.Nome,
+    Preco: pedido.Preco,
+    RealizadoEmUtc: DateTime.UtcNow,
+    CorrelationId: correlationId
+));
+
+// Publisher (ex: PaymentsAPI)
+await _publishEndpoint.Publish(new PagamentoProcessadoEvento(
+    PedidoId: pagamento.PedidoId,
+    UsuarioId: pagamento.UsuarioId,
+    JogoId: pagamento.JogoId,
+    NomeJogo: pagamento.NomeJogo,
+    Preco: pagamento.Valor,
+    Status: "Aprovado",   // ou "Rejeitado"
+    Motivo: motivo,
+    ProcessadoEmUtc: DateTime.UtcNow,
+    CorrelationId: correlationId
+));
 ```
 
 ## Versionamento

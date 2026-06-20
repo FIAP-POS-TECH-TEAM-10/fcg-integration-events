@@ -4,10 +4,10 @@ namespace FCGames.IntegrationEvents;
 /// Publicado por: UsersAPI após commit do cadastro.
 /// Consumido por: CatalogAPI (cria biblioteca vazia), NotificationsAPI (log boas-vindas).
 /// </summary>
-public record UserCreatedEvent(
-    Guid UserId,
+public record UsuarioCriadoEvento(
+    Guid UsuarioId,
     string Nome,
     string Email,
-    DateTime CreatedAtUtc,
+    DateTime CriadoEmUtc,
     Guid CorrelationId
 );
