@@ -1,83 +1,40 @@
 # FCGames.IntegrationEvents
 
-Contratos de integração compartilhados entre os microsserviços FCGames.
+Pacote NuGet com os contratos dos eventos trocados entre os serviços do FCGames. É a única fonte
+desses records: os serviços referenciam o pacote, nunca copiam as classes.
 
 ## Eventos
 
-| Evento | Publicado por | Consumido por |
-|--------|--------------|---------------|
-| `UsuarioCriadoEvento` | UsersAPI | CatalogAPI, NotificationsAPI |
-| `PedidoRealizadoEvento` | CatalogAPI | PaymentsAPI |
-| `PagamentoProcessadoEvento` | PaymentsAPI | CatalogAPI, NotificationsAPI |
+Namespace `FCGames.IntegrationEvents` (o MassTransit roteia pelo namespace + nome do tipo).
+
+| Evento | Campos | Publica | Consome |
+|---|---|---|---|
+| `UsuarioCriadoEvento` | `UsuarioId`, `Nome`, `Email`, `CriadoEmUtc`, `CorrelationId` | users | catalog, notificações |
+| `PedidoRealizadoEvento` | `PedidoId`, `UsuarioId`, `JogoId`, `NomeJogo`, `Preco`, `RealizadoEmUtc`, `CorrelationId` | catalog | payments |
+| `PagamentoProcessadoEvento` | `PedidoId`, `UsuarioId`, `JogoId`, `NomeJogo`, `Preco`, `Status` (`Aprovado` \| `Rejeitado`), `Motivo?`, `ProcessadoEmUtc`, `CorrelationId` | payments | catalog, notificações |
+
+"Notificações" é a Lambda `fcg-notifications-lambda` na AWS e o worker `fcg-notifications-api` no
+`docker-compose` local.
 
 ## Como consumir
 
-### 1. Adicionar `nuget.config` na raiz do seu repositório
-
-Copie o arquivo `nuget.config` deste repo. Configure a variável de ambiente `NUGET_AUTH_TOKEN` com um PAT que tenha o scope `read:packages`.
-
-### 2. Referenciar o pacote no `.csproj`
+1. Copie o `nuget.config` deste repositório para a raiz do serviço.
+2. Defina `NUGET_AUTH_TOKEN` com um token do GitHub com permissão `read:packages`
+   (localmente: `NUGET_AUTH_TOKEN=$(gh auth token)` depois de `gh auth refresh -s read:packages`).
+3. Referencie a versão em uso hoje:
 
 ```xml
-<PackageReference Include="FCGames.IntegrationEvents" Version="1.0.0" />
-```
-
-### 3. Usar nos consumers/publishers MassTransit
-
-```csharp
-using FCGames.IntegrationEvents;
-
-// Publisher (ex: UsersAPI)
-await _publishEndpoint.Publish(new UsuarioCriadoEvento(
-    UsuarioId: usuario.Id,
-    Nome: usuario.Nome,
-    Email: usuario.Email,
-    CriadoEmUtc: DateTime.UtcNow,
-    CorrelationId: Guid.NewGuid()
-));
-
-// Consumer (ex: CatalogAPI)
-public class UsuarioCriadoConsumer : IConsumer<UsuarioCriadoEvento>
-{
-    public async Task Consume(ConsumeContext<UsuarioCriadoEvento> context)
-    {
-        var evt = context.Message;
-        // criar biblioteca vazia para evt.UsuarioId
-    }
-}
-
-// Publisher (ex: CatalogAPI)
-await _publishEndpoint.Publish(new PedidoRealizadoEvento(
-    PedidoId: pedido.Id,
-    UsuarioId: pedido.UsuarioId,
-    JogoId: pedido.JogoId,
-    NomeJogo: jogo.Nome,
-    Preco: pedido.Preco,
-    RealizadoEmUtc: DateTime.UtcNow,
-    CorrelationId: correlationId
-));
-
-// Publisher (ex: PaymentsAPI)
-await _publishEndpoint.Publish(new PagamentoProcessadoEvento(
-    PedidoId: pagamento.PedidoId,
-    UsuarioId: pagamento.UsuarioId,
-    JogoId: pagamento.JogoId,
-    NomeJogo: pagamento.NomeJogo,
-    Preco: pagamento.Valor,
-    Status: "Aprovado",   // ou "Rejeitado"
-    Motivo: motivo,
-    ProcessadoEmUtc: DateTime.UtcNow,
-    CorrelationId: correlationId
-));
+<PackageReference Include="FCGames.IntegrationEvents" Version="1.0.0-preview.2" />
 ```
 
 ## Versionamento
 
-- Push na `main` → publica `1.0.0-preview.<run_number>` (snapshot de desenvolvimento)
-- Tag `v1.0.0` → publica `1.0.0` (release estável)
+O workflow `publish.yml` publica no GitHub Packages da organização:
 
-## Regra de ouro
+- push na `main` → `1.0.0-preview.<run_number>`
+- tag `v*.*.*` (ex.: `v1.0.0`) → a versão da tag
 
-> Nunca altere um campo existente em um evento sem criar uma nova versão do pacote.
-> Adicionar campos opcionais (`string? Campo`) é compatível com versões anteriores.
-> Remover ou renomear campos é breaking change — bump de major version.
+Ainda não há versão estável: todos os serviços usam `1.0.0-preview.2`.
+
+Adicionar campo opcional é compatível. Renomear ou remover campo quebra os consumidores: exige
+nova versão maior e atualização de todos os serviços.
