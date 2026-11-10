@@ -32,7 +32,7 @@ Namespace `FCGames.IntegrationEvents` (o MassTransit roteia pelo namespace + nom
 O workflow `publish.yml` publica no GitHub Packages da organização:
 
 - push na `main` → `1.0.0-preview.<run_number>`
-- tag `v*` (ex.: `v1.0.0`) → a versão da tag
+- tag `v*.*.*` (ex.: `v1.0.0`) → a versão da tag
 
 Ainda não há versão estável: todos os serviços usam `1.0.0-preview.2`.
 
